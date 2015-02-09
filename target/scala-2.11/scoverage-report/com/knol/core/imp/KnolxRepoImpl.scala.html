@@ -1,0 +1,2036 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          com/knol/core/imp/KnolxRepoImpl.scala.html
+        </title>
+        <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css"/>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+        <script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+        <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.18.3/addons/pager/jquery.tablesorter.pager.min.js"></script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier;'>1 <span style=''>package com.knol.core.imp
+</span>2 <span style=''>
+</span>3 <span style=''>import com.knol.db.connection.DBConnection
+</span>4 <span style=''>import com.knol.core.KnolxRepo
+</span>5 <span style=''>import org.slf4j.LoggerFactory
+</span>6 <span style=''>
+</span>7 <span style=''>class KnolxRepoImpl extends KnolxRepo with DBConnection {
+</span>8 <span style=''>  val logger = </span><span style='background: #AEF1AE'>LoggerFactory.getLogger(this.getClass)</span><span style=''>
+</span>9 <span style=''>
+</span>10 <span style=''>  /**
+</span>11 <span style=''>   * This function takes knol id as input and return list of all sessions of knol having same id.
+</span>12 <span style=''>   */
+</span>13 <span style=''>  def getSessionById(id: Int): List[Session] = {
+</span>14 <span style=''>    import scala.collection.mutable
+</span>15 <span style=''>    var list = </span><span style='background: #AEF1AE'>List[Session]()</span><span style=''>
+</span>16 <span style=''>    val con = </span><span style='background: #AEF1AE'>getCon()</span><span style=''>
+</span>17 <span style=''>
+</span>18 <span style=''>    con match {
+</span>19 <span style=''>      case Some(con) =>
+</span>20 <span style=''>        try {
+</span>21 <span style=''>          </span><span style='background: #AEF1AE'>val query = "select * from knol k, session s where k.id=knolId and k.id=" + id
+</span>22 <span style=''></span><span style='background: #AEF1AE'>          val stmt = con.createStatement()
+</span>23 <span style=''></span><span style='background: #AEF1AE'>          val rs = stmt.executeQuery(query)
+</span>24 <span style=''></span><span style='background: #AEF1AE'>          if (rs.next() == false)
+</span>25 <span style=''></span><span style='background: #AEF1AE'>            throw new IllegalArgumentException("arg 1 was wrong...");
+</span>26 <span style=''></span><span style='background: #AEF1AE'>          else {
+</span>27 <span style=''></span><span style='background: #AEF1AE'>            rs.previous()
+</span>28 <span style=''></span><span style='background: #AEF1AE'>            while (rs.next()) {
+</span>29 <span style=''></span><span style='background: #AEF1AE'>              val session = Session(rs.getInt("id"), rs.getString("topic"), rs.getString("date"), rs.getInt("knolId"))
+</span>30 <span style=''></span><span style='background: #AEF1AE'>              list = list.::(session)
+</span>31 <span style=''></span><span style='background: #AEF1AE'>            }
+</span>32 <span style=''></span><span style='background: #AEF1AE'>          }
+</span>33 <span style=''></span><span style='background: #AEF1AE'>          list</span><span style=''>
+</span>34 <span style=''>        } catch {
+</span>35 <span style=''>          case ex: Exception =>
+</span>36 <span style=''>            </span><span style='background: #AEF1AE'>logger.error("Error fetching data" + ex.printStackTrace())</span><span style=''>
+</span>37 <span style=''>            list
+</span>38 <span style=''>        }
+</span>39 <span style=''>      case None =>
+</span>40 <span style=''>        </span><span style='background: #F0ADAD'>logger.error("Connection not found")</span><span style=''>
+</span>41 <span style=''>        list
+</span>42 <span style=''>    }
+</span>43 <span style=''>
+</span>44 <span style=''>  }
+</span>45 <span style=''>  /**
+</span>46 <span style=''>   * This function takes date as input in format yyyy-mm-dd
+</span>47 <span style=''>   * Returns list of knolx having knolid, name, email, mobileNo,sessionid,topic,date
+</span>48 <span style=''>   */
+</span>49 <span style=''>  def getSessionByDate(datex: String): List[Knolx] = {
+</span>50 <span style=''>    import scala.collection.mutable
+</span>51 <span style=''>    var list = </span><span style='background: #AEF1AE'>List[Knolx]()</span><span style=''>
+</span>52 <span style=''>    val con = </span><span style='background: #AEF1AE'>getCon()</span><span style=''>
+</span>53 <span style=''>
+</span>54 <span style=''>    con match {
+</span>55 <span style=''>      case Some(con) =>
+</span>56 <span style=''>        try {
+</span>57 <span style=''>          </span><span style='background: #AEF1AE'>val query = "select name,email,mno,s.id,topic,date,knolId from knol k join session s on k.id=knolId where date='" + datex + "';"
+</span>58 <span style=''></span><span style='background: #AEF1AE'>          val stmt = con.createStatement()
+</span>59 <span style=''></span><span style='background: #AEF1AE'>          val rs = stmt.executeQuery(query)
+</span>60 <span style=''></span><span style='background: #AEF1AE'>          
+</span>61 <span style=''></span><span style='background: #AEF1AE'>          if (rs.next == false)
+</span>62 <span style=''></span><span style='background: #AEF1AE'>            throw new IllegalArgumentException("arg 1 was wrong...");
+</span>63 <span style=''></span><span style='background: #AEF1AE'>          else {
+</span>64 <span style=''></span><span style='background: #AEF1AE'>            rs.previous()
+</span>65 <span style=''></span><span style='background: #AEF1AE'>            while (rs.next()) {
+</span>66 <span style=''></span><span style='background: #AEF1AE'>              val knolid = rs.getInt("knolId")
+</span>67 <span style=''></span><span style='background: #AEF1AE'>              val name = rs.getString("name")
+</span>68 <span style=''></span><span style='background: #AEF1AE'>
+</span>69 <span style=''></span><span style='background: #AEF1AE'>              val knolx =
+</span>70 <span style=''></span><span style='background: #AEF1AE'>                Knolx(knolid, name, rs.getString("email"), rs.getString("mno"), rs.getInt("s.id"), rs.getString("topic"), rs.getString("date"))
+</span>71 <span style=''></span><span style='background: #AEF1AE'>              list = list.::(knolx)
+</span>72 <span style=''></span><span style='background: #AEF1AE'>            }
+</span>73 <span style=''></span><span style='background: #AEF1AE'>          }
+</span>74 <span style=''></span><span style='background: #AEF1AE'>          list</span><span style=''>
+</span>75 <span style=''>        } catch {
+</span>76 <span style=''>          case ex: Exception =>
+</span>77 <span style=''>            </span><span style='background: #AEF1AE'>logger.error("Error fetching data" + ex.printStackTrace())</span><span style=''>
+</span>78 <span style=''>            list
+</span>79 <span style=''>        }
+</span>80 <span style=''>      case None =>
+</span>81 <span style=''>        </span><span style='background: #F0ADAD'>logger.error("Connection not found")</span><span style=''>
+</span>82 <span style=''>        list
+</span>83 <span style=''>    }
+</span>84 <span style=''>
+</span>85 <span style=''>  }
+</span>86 <span style=''>  def getAllKnolx(): List[Knolx] = {
+</span>87 <span style=''>    import scala.collection.mutable
+</span>88 <span style=''>    var list = </span><span style='background: #AEF1AE'>List[Knolx]()</span><span style=''>
+</span>89 <span style=''>    val con = </span><span style='background: #AEF1AE'>getCon()</span><span style=''>
+</span>90 <span style=''>
+</span>91 <span style=''>    con match {
+</span>92 <span style=''>      case Some(con) =>
+</span>93 <span style=''>        try {
+</span>94 <span style=''>          </span><span style='background: #AEF1AE'>val query = "select k.id as knolid, name,email,mNo,s.id as sessionid,topic, date from knol k, session s where k.id=knolId"
+</span>95 <span style=''></span><span style='background: #AEF1AE'>
+</span>96 <span style=''></span><span style='background: #AEF1AE'>          val stmt = con.createStatement()
+</span>97 <span style=''></span><span style='background: #AEF1AE'>          val rs = stmt.executeQuery(query)
+</span>98 <span style=''></span><span style='background: #AEF1AE'>          while (rs.next()) {
+</span>99 <span style=''></span><span style='background: #AEF1AE'>            val knolx =
+</span>100 <span style=''></span><span style='background: #AEF1AE'>              Knolx(rs.getInt("knolid"), rs.getString("name"), rs.getString("email"),
+</span>101 <span style=''></span><span style='background: #AEF1AE'>                rs.getString("mNo"), rs.getInt("sessionid"), rs.getString("topic"), rs.getString("date"))
+</span>102 <span style=''></span><span style='background: #AEF1AE'>            list = list.::(knolx)
+</span>103 <span style=''></span><span style='background: #AEF1AE'>          }
+</span>104 <span style=''></span><span style='background: #AEF1AE'>          list</span><span style=''>
+</span>105 <span style=''>        } catch {
+</span>106 <span style=''>          case ex: Exception =>
+</span>107 <span style=''>            </span><span style='background: #F0ADAD'>logger.error("Error fetching data" + ex.printStackTrace())</span><span style=''>
+</span>108 <span style=''>            list
+</span>109 <span style=''>        }
+</span>110 <span style=''>      case None =>
+</span>111 <span style=''>        </span><span style='background: #F0ADAD'>logger.error("Connection not found")</span><span style=''>
+</span>112 <span style=''>        list
+</span>113 <span style=''>    }
+</span>114 <span style=''>  }
+</span>115 <span style=''>}
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          8
+        </td>
+        <td>
+          88
+        </td>
+        <td>
+          206
+          -
+          244
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.LoggerFactory.getLogger
+        </td>
+        <td style="background: #AEF1AE">
+          org.slf4j.LoggerFactory.getLogger(this.getClass())
+        </td>
+      </tr><tr>
+        <td>
+          8
+        </td>
+        <td>
+          87
+        </td>
+        <td>
+          230
+          -
+          243
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Object.getClass
+        </td>
+        <td style="background: #AEF1AE">
+          this.getClass()
+        </td>
+      </tr><tr>
+        <td>
+          15
+        </td>
+        <td>
+          89
+        </td>
+        <td>
+          456
+          -
+          471
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.immutable.Nil
+        </td>
+        <td style="background: #AEF1AE">
+          immutable.this.Nil
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          90
+        </td>
+        <td>
+          486
+          -
+          494
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.knol.db.connection.DBConnection.getCon
+        </td>
+        <td style="background: #AEF1AE">
+          KnolxRepoImpl.this.getCon()
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          110
+        </td>
+        <td>
+          560
+          -
+          1102
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          {
+  val query: String = &quot;select * from knol k, session s where k.id=knolId and k.id=&quot;.+(id);
+  val stmt: java.sql.Statement = con.createStatement();
+  val rs: java.sql.ResultSet = stmt.executeQuery(query);
+  if (rs.next().==(false))
+    throw new scala.`package`.IllegalArgumentException(&quot;arg 1 was wrong...&quot;)
+  else
+    {
+      rs.previous();
+      while$1(){
+        if (rs.next())
+          {
+            {
+              val session: com.knol.core.imp.Session = Session.apply(rs.getInt(&quot;id&quot;), rs.getString(&quot;topic&quot;), rs.getString(&quot;date&quot;), rs.getInt(&quot;knolId&quot;));
+              list = list.::[com.knol.core.imp.Session](session)
+            };
+            while$1()
+          }
+        else
+          ()
+      }
+    };
+  list
+}
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          91
+        </td>
+        <td>
+          572
+          -
+          638
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;select * from knol k, session s where k.id=knolId and k.id=&quot;.+(id)
+        </td>
+      </tr><tr>
+        <td>
+          22
+        </td>
+        <td>
+          92
+        </td>
+        <td>
+          660
+          -
+          681
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.sql.Connection.createStatement
+        </td>
+        <td style="background: #AEF1AE">
+          con.createStatement()
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          93
+        </td>
+        <td>
+          701
+          -
+          725
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.sql.Statement.executeQuery
+        </td>
+        <td style="background: #AEF1AE">
+          stmt.executeQuery(query)
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          94
+        </td>
+        <td>
+          740
+          -
+          758
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Boolean.==
+        </td>
+        <td style="background: #AEF1AE">
+          rs.next().==(false)
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          95
+        </td>
+        <td>
+          772
+          -
+          828
+        </td>
+        <td>
+          Throw
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          throw new scala.`package`.IllegalArgumentException(&quot;arg 1 was wrong...&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          96
+        </td>
+        <td>
+          772
+          -
+          828
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          throw new scala.`package`.IllegalArgumentException(&quot;arg 1 was wrong...&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          109
+        </td>
+        <td>
+          845
+          -
+          1087
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          {
+  rs.previous();
+  while$1(){
+    if (rs.next())
+      {
+        {
+          val session: com.knol.core.imp.Session = Session.apply(rs.getInt(&quot;id&quot;), rs.getString(&quot;topic&quot;), rs.getString(&quot;date&quot;), rs.getInt(&quot;knolId&quot;));
+          list = list.::[com.knol.core.imp.Session](session)
+        };
+        while$1()
+      }
+    else
+      ()
+  }
+}
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          97
+        </td>
+        <td>
+          859
+          -
+          872
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.sql.ResultSet.previous
+        </td>
+        <td style="background: #AEF1AE">
+          rs.previous()
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          98
+        </td>
+        <td>
+          892
+          -
+          901
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.sql.ResultSet.next
+        </td>
+        <td style="background: #AEF1AE">
+          rs.next()
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          107
+        </td>
+        <td>
+          885
+          -
+          885
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          106
+        </td>
+        <td>
+          903
+          -
+          1075
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          {
+  {
+    val session: com.knol.core.imp.Session = Session.apply(rs.getInt(&quot;id&quot;), rs.getString(&quot;topic&quot;), rs.getString(&quot;date&quot;), rs.getInt(&quot;knolId&quot;));
+    list = list.::[com.knol.core.imp.Session](session)
+  };
+  while$1()
+}
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          105
+        </td>
+        <td>
+          903
+          -
+          903
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.knol.core.imp.KnolxRepoImpl.while$1
+        </td>
+        <td style="background: #AEF1AE">
+          while$1()
+        </td>
+      </tr><tr>
+        <td>
+          28
+        </td>
+        <td>
+          108
+        </td>
+        <td>
+          885
+          -
+          885
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          101
+        </td>
+        <td>
+          981
+          -
+          1001
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.sql.ResultSet.getString
+        </td>
+        <td style="background: #AEF1AE">
+          rs.getString(&quot;date&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          100
+        </td>
+        <td>
+          958
+          -
+          979
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.sql.ResultSet.getString
+        </td>
+        <td style="background: #AEF1AE">
+          rs.getString(&quot;topic&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          103
+        </td>
+        <td>
+          933
+          -
+          1023
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.knol.core.imp.Session.apply
+        </td>
+        <td style="background: #AEF1AE">
+          Session.apply(rs.getInt(&quot;id&quot;), rs.getString(&quot;topic&quot;), rs.getString(&quot;date&quot;), rs.getInt(&quot;knolId&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          99
+        </td>
+        <td>
+          941
+          -
+          956
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.sql.ResultSet.getInt
+        </td>
+        <td style="background: #AEF1AE">
+          rs.getInt(&quot;id&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          29
+        </td>
+        <td>
+          102
+        </td>
+        <td>
+          1003
+          -
+          1022
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.sql.ResultSet.getInt
+        </td>
+        <td style="background: #AEF1AE">
+          rs.getInt(&quot;knolId&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          104
+        </td>
+        <td>
+          1045
+          -
+          1061
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.immutable.List.::
+        </td>
+        <td style="background: #AEF1AE">
+          list.::[com.knol.core.imp.Session](session)
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          113
+        </td>
+        <td>
+          1178
+          -
+          1222
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Error fetching data&quot;.+(ex.printStackTrace())
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          112
+        </td>
+        <td>
+          1202
+          -
+          1222
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Throwable.printStackTrace
+        </td>
+        <td style="background: #AEF1AE">
+          ex.printStackTrace()
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          114
+        </td>
+        <td>
+          1165
+          -
+          1223
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.error
+        </td>
+        <td style="background: #AEF1AE">
+          KnolxRepoImpl.this.logger.error(&quot;Error fetching data&quot;.+(ex.printStackTrace()))
+        </td>
+      </tr><tr>
+        <td>
+          36
+        </td>
+        <td>
+          111
+        </td>
+        <td>
+          1178
+          -
+          1199
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Error fetching data&quot;
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          115
+        </td>
+        <td>
+          1278
+          -
+          1314
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.error
+        </td>
+        <td style="background: #F0ADAD">
+          KnolxRepoImpl.this.logger.error(&quot;Connection not found&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          116
+        </td>
+        <td>
+          1602
+          -
+          1615
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.immutable.Nil
+        </td>
+        <td style="background: #AEF1AE">
+          immutable.this.Nil
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          117
+        </td>
+        <td>
+          1630
+          -
+          1638
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.knol.db.connection.DBConnection.getCon
+        </td>
+        <td style="background: #AEF1AE">
+          KnolxRepoImpl.this.getCon()
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          140
+        </td>
+        <td>
+          1704
+          -
+          2448
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          {
+  val query: String = &quot;select name,email,mno,s.id,topic,date,knolId from knol k join session s on k.id=knolId where date=\'&quot;.+(datex).+(&quot;\';&quot;);
+  val stmt: java.sql.Statement = con.createStatement();
+  val rs: java.sql.ResultSet = stmt.executeQuery(query);
+  if (rs.next().==(false))
+    throw new scala.`package`.IllegalArgumentException(&quot;arg 1 was wrong...&quot;)
+  else
+    {
+      rs.previous();
+      while$2(){
+        if (rs.next())
+          {
+            {
+              val knolid: Int = rs.getInt(&quot;knolId&quot;);
+              val name: String = rs.getString(&quot;name&quot;);
+              val knolx: com.knol.core.imp.Knolx = Knolx.apply(knolid, name, rs.getString(&quot;email&quot;), rs.getString(&quot;mno&quot;), rs.getInt(&quot;s.id&quot;), rs.getString(&quot;topic&quot;), rs.getString(&quot;date&quot;));
+              list = list.::[com.knol.core.imp.Knolx](knolx)
+            };
+            while$2()
+          }
+        else
+          ()
+      }
+    };
+  list
+}
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          118
+        </td>
+        <td>
+          1716
+          -
+          1832
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;select name,email,mno,s.id,topic,date,knolId from knol k join session s on k.id=knolId where date=\'&quot;.+(datex).+(&quot;\';&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          119
+        </td>
+        <td>
+          1854
+          -
+          1875
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.sql.Connection.createStatement
+        </td>
+        <td style="background: #AEF1AE">
+          con.createStatement()
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          120
+        </td>
+        <td>
+          1895
+          -
+          1919
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.sql.Statement.executeQuery
+        </td>
+        <td style="background: #AEF1AE">
+          stmt.executeQuery(query)
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          121
+        </td>
+        <td>
+          1945
+          -
+          1961
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.Boolean.==
+        </td>
+        <td style="background: #AEF1AE">
+          rs.next().==(false)
+        </td>
+      </tr><tr>
+        <td>
+          62
+        </td>
+        <td>
+          122
+        </td>
+        <td>
+          1975
+          -
+          2031
+        </td>
+        <td>
+          Throw
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          throw new scala.`package`.IllegalArgumentException(&quot;arg 1 was wrong...&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          62
+        </td>
+        <td>
+          123
+        </td>
+        <td>
+          1975
+          -
+          2031
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          throw new scala.`package`.IllegalArgumentException(&quot;arg 1 was wrong...&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          139
+        </td>
+        <td>
+          2048
+          -
+          2433
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          {
+  rs.previous();
+  while$2(){
+    if (rs.next())
+      {
+        {
+          val knolid: Int = rs.getInt(&quot;knolId&quot;);
+          val name: String = rs.getString(&quot;name&quot;);
+          val knolx: com.knol.core.imp.Knolx = Knolx.apply(knolid, name, rs.getString(&quot;email&quot;), rs.getString(&quot;mno&quot;), rs.getInt(&quot;s.id&quot;), rs.getString(&quot;topic&quot;), rs.getString(&quot;date&quot;));
+          list = list.::[com.knol.core.imp.Knolx](knolx)
+        };
+        while$2()
+      }
+    else
+      ()
+  }
+}
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          124
+        </td>
+        <td>
+          2062
+          -
+          2075
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.sql.ResultSet.previous
+        </td>
+        <td style="background: #AEF1AE">
+          rs.previous()
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          137
+        </td>
+        <td>
+          2088
+          -
+          2088
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          125
+        </td>
+        <td>
+          2095
+          -
+          2104
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.sql.ResultSet.next
+        </td>
+        <td style="background: #AEF1AE">
+          rs.next()
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          136
+        </td>
+        <td>
+          2106
+          -
+          2421
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          {
+  {
+    val knolid: Int = rs.getInt(&quot;knolId&quot;);
+    val name: String = rs.getString(&quot;name&quot;);
+    val knolx: com.knol.core.imp.Knolx = Knolx.apply(knolid, name, rs.getString(&quot;email&quot;), rs.getString(&quot;mno&quot;), rs.getInt(&quot;s.id&quot;), rs.getString(&quot;topic&quot;), rs.getString(&quot;date&quot;));
+    list = list.::[com.knol.core.imp.Knolx](knolx)
+  };
+  while$2()
+}
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          138
+        </td>
+        <td>
+          2088
+          -
+          2088
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          135
+        </td>
+        <td>
+          2106
+          -
+          2106
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.knol.core.imp.KnolxRepoImpl.while$2
+        </td>
+        <td style="background: #AEF1AE">
+          while$2()
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          126
+        </td>
+        <td>
+          2135
+          -
+          2154
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.sql.ResultSet.getInt
+        </td>
+        <td style="background: #AEF1AE">
+          rs.getInt(&quot;knolId&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          127
+        </td>
+        <td>
+          2180
+          -
+          2200
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.sql.ResultSet.getString
+        </td>
+        <td style="background: #AEF1AE">
+          rs.getString(&quot;name&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          128
+        </td>
+        <td>
+          2264
+          -
+          2285
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.sql.ResultSet.getString
+        </td>
+        <td style="background: #AEF1AE">
+          rs.getString(&quot;email&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          131
+        </td>
+        <td>
+          2327
+          -
+          2348
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.sql.ResultSet.getString
+        </td>
+        <td style="background: #AEF1AE">
+          rs.getString(&quot;topic&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          133
+        </td>
+        <td>
+          2244
+          -
+          2371
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.knol.core.imp.Knolx.apply
+        </td>
+        <td style="background: #AEF1AE">
+          Knolx.apply(knolid, name, rs.getString(&quot;email&quot;), rs.getString(&quot;mno&quot;), rs.getInt(&quot;s.id&quot;), rs.getString(&quot;topic&quot;), rs.getString(&quot;date&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          130
+        </td>
+        <td>
+          2308
+          -
+          2325
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.sql.ResultSet.getInt
+        </td>
+        <td style="background: #AEF1AE">
+          rs.getInt(&quot;s.id&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          129
+        </td>
+        <td>
+          2287
+          -
+          2306
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.sql.ResultSet.getString
+        </td>
+        <td style="background: #AEF1AE">
+          rs.getString(&quot;mno&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          132
+        </td>
+        <td>
+          2350
+          -
+          2370
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.sql.ResultSet.getString
+        </td>
+        <td style="background: #AEF1AE">
+          rs.getString(&quot;date&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          134
+        </td>
+        <td>
+          2393
+          -
+          2407
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.immutable.List.::
+        </td>
+        <td style="background: #AEF1AE">
+          list.::[com.knol.core.imp.Knolx](knolx)
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          142
+        </td>
+        <td>
+          2548
+          -
+          2568
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Throwable.printStackTrace
+        </td>
+        <td style="background: #AEF1AE">
+          ex.printStackTrace()
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          141
+        </td>
+        <td>
+          2524
+          -
+          2545
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Error fetching data&quot;
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          144
+        </td>
+        <td>
+          2511
+          -
+          2569
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.error
+        </td>
+        <td style="background: #AEF1AE">
+          KnolxRepoImpl.this.logger.error(&quot;Error fetching data&quot;.+(ex.printStackTrace()))
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          143
+        </td>
+        <td>
+          2524
+          -
+          2568
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Error fetching data&quot;.+(ex.printStackTrace())
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          145
+        </td>
+        <td>
+          2624
+          -
+          2660
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.error
+        </td>
+        <td style="background: #F0ADAD">
+          KnolxRepoImpl.this.logger.error(&quot;Connection not found&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          88
+        </td>
+        <td>
+          146
+        </td>
+        <td>
+          2773
+          -
+          2786
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          scala.collection.immutable.Nil
+        </td>
+        <td style="background: #AEF1AE">
+          immutable.this.Nil
+        </td>
+      </tr><tr>
+        <td>
+          89
+        </td>
+        <td>
+          147
+        </td>
+        <td>
+          2801
+          -
+          2809
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.knol.db.connection.DBConnection.getCon
+        </td>
+        <td style="background: #AEF1AE">
+          KnolxRepoImpl.this.getCon()
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          165
+        </td>
+        <td>
+          2875
+          -
+          3392
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          {
+  val query: String = &quot;select k.id as knolid, name,email,mNo,s.id as sessionid,topic, date from knol k, session s where k.id=knolId&quot;;
+  val stmt: java.sql.Statement = con.createStatement();
+  val rs: java.sql.ResultSet = stmt.executeQuery(query);
+  while$3(){
+    if (rs.next())
+      {
+        {
+          val knolx: com.knol.core.imp.Knolx = Knolx.apply(rs.getInt(&quot;knolid&quot;), rs.getString(&quot;name&quot;), rs.getString(&quot;email&quot;), rs.getString(&quot;mNo&quot;), rs.getInt(&quot;sessionid&quot;), rs.getString(&quot;topic&quot;), rs.getString(&quot;date&quot;));
+          list = list.::[com.knol.core.imp.Knolx](knolx)
+        };
+        while$3()
+      }
+    else
+      ()
+  };
+  list
+}
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          148
+        </td>
+        <td>
+          2887
+          -
+          2997
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;select k.id as knolid, name,email,mNo,s.id as sessionid,topic, date from knol k, session s where k.id=knolId&quot;
+        </td>
+      </tr><tr>
+        <td>
+          96
+        </td>
+        <td>
+          149
+        </td>
+        <td>
+          3020
+          -
+          3041
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.sql.Connection.createStatement
+        </td>
+        <td style="background: #AEF1AE">
+          con.createStatement()
+        </td>
+      </tr><tr>
+        <td>
+          97
+        </td>
+        <td>
+          150
+        </td>
+        <td>
+          3061
+          -
+          3085
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.sql.Statement.executeQuery
+        </td>
+        <td style="background: #AEF1AE">
+          stmt.executeQuery(query)
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          164
+        </td>
+        <td>
+          3096
+          -
+          3096
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          151
+        </td>
+        <td>
+          3103
+          -
+          3112
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.sql.ResultSet.next
+        </td>
+        <td style="background: #AEF1AE">
+          rs.next()
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          163
+        </td>
+        <td>
+          3096
+          -
+          3096
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          ()
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          162
+        </td>
+        <td>
+          3114
+          -
+          3377
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #AEF1AE">
+          {
+  {
+    val knolx: com.knol.core.imp.Knolx = Knolx.apply(rs.getInt(&quot;knolid&quot;), rs.getString(&quot;name&quot;), rs.getString(&quot;email&quot;), rs.getString(&quot;mNo&quot;), rs.getInt(&quot;sessionid&quot;), rs.getString(&quot;topic&quot;), rs.getString(&quot;date&quot;));
+    list = list.::[com.knol.core.imp.Knolx](knolx)
+  };
+  while$3()
+}
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          161
+        </td>
+        <td>
+          3114
+          -
+          3114
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.knol.core.imp.KnolxRepoImpl.while$3
+        </td>
+        <td style="background: #AEF1AE">
+          while$3()
+        </td>
+      </tr><tr>
+        <td>
+          100
+        </td>
+        <td>
+          154
+        </td>
+        <td>
+          3203
+          -
+          3224
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.sql.ResultSet.getString
+        </td>
+        <td style="background: #AEF1AE">
+          rs.getString(&quot;email&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          100
+        </td>
+        <td>
+          159
+        </td>
+        <td>
+          3154
+          -
+          3331
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          com.knol.core.imp.Knolx.apply
+        </td>
+        <td style="background: #AEF1AE">
+          Knolx.apply(rs.getInt(&quot;knolid&quot;), rs.getString(&quot;name&quot;), rs.getString(&quot;email&quot;), rs.getString(&quot;mNo&quot;), rs.getInt(&quot;sessionid&quot;), rs.getString(&quot;topic&quot;), rs.getString(&quot;date&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          100
+        </td>
+        <td>
+          153
+        </td>
+        <td>
+          3181
+          -
+          3201
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.sql.ResultSet.getString
+        </td>
+        <td style="background: #AEF1AE">
+          rs.getString(&quot;name&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          100
+        </td>
+        <td>
+          152
+        </td>
+        <td>
+          3160
+          -
+          3179
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.sql.ResultSet.getInt
+        </td>
+        <td style="background: #AEF1AE">
+          rs.getInt(&quot;knolid&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          101
+        </td>
+        <td>
+          155
+        </td>
+        <td>
+          3242
+          -
+          3261
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.sql.ResultSet.getString
+        </td>
+        <td style="background: #AEF1AE">
+          rs.getString(&quot;mNo&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          101
+        </td>
+        <td>
+          158
+        </td>
+        <td>
+          3310
+          -
+          3330
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.sql.ResultSet.getString
+        </td>
+        <td style="background: #AEF1AE">
+          rs.getString(&quot;date&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          101
+        </td>
+        <td>
+          157
+        </td>
+        <td>
+          3287
+          -
+          3308
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.sql.ResultSet.getString
+        </td>
+        <td style="background: #AEF1AE">
+          rs.getString(&quot;topic&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          101
+        </td>
+        <td>
+          156
+        </td>
+        <td>
+          3263
+          -
+          3285
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.sql.ResultSet.getInt
+        </td>
+        <td style="background: #AEF1AE">
+          rs.getInt(&quot;sessionid&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          102
+        </td>
+        <td>
+          160
+        </td>
+        <td>
+          3351
+          -
+          3365
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scala.collection.immutable.List.::
+        </td>
+        <td style="background: #AEF1AE">
+          list.::[com.knol.core.imp.Knolx](knolx)
+        </td>
+      </tr><tr>
+        <td>
+          107
+        </td>
+        <td>
+          167
+        </td>
+        <td>
+          3492
+          -
+          3512
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.Throwable.printStackTrace
+        </td>
+        <td style="background: #F0ADAD">
+          ex.printStackTrace()
+        </td>
+      </tr><tr>
+        <td>
+          107
+        </td>
+        <td>
+          166
+        </td>
+        <td>
+          3468
+          -
+          3489
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;nosymbol&gt;
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Error fetching data&quot;
+        </td>
+      </tr><tr>
+        <td>
+          107
+        </td>
+        <td>
+          169
+        </td>
+        <td>
+          3455
+          -
+          3513
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.error
+        </td>
+        <td style="background: #F0ADAD">
+          KnolxRepoImpl.this.logger.error(&quot;Error fetching data&quot;.+(ex.printStackTrace()))
+        </td>
+      </tr><tr>
+        <td>
+          107
+        </td>
+        <td>
+          168
+        </td>
+        <td>
+          3468
+          -
+          3512
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          java.lang.String.+
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;Error fetching data&quot;.+(ex.printStackTrace())
+        </td>
+      </tr><tr>
+        <td>
+          111
+        </td>
+        <td>
+          170
+        </td>
+        <td>
+          3568
+          -
+          3604
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          org.slf4j.Logger.error
+        </td>
+        <td style="background: #F0ADAD">
+          KnolxRepoImpl.this.logger.error(&quot;Connection not found&quot;)
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

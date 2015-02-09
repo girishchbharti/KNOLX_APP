@@ -1,0 +1,12 @@
+[0m[[0mdebug[0m] [0mRunning TaskDef(com.knol.core.impl.KnolRepoImplTest, org.scalatest.tools.Framework$$anon$1@1f87dad3, false, [SuiteSelector])[0m
+[0m[[0mdebug[0m] [0mRunning TaskDef(com.knol.core.impl.SessionRepoImplTest, org.scalatest.tools.Framework$$anon$1@1f87dad3, false, [SuiteSelector])[0m
+[0m[[0mdebug[0m] [0mRunning TaskDef(com.knol.core.impl.KnolxRepoImplTest, org.scalatest.tools.Framework$$anon$1@1f87dad3, false, [SuiteSelector])[0m
+[0m[[0minfo[0m] [0m[36mRun completed in 17 seconds, 295 milliseconds.[0m[0m
+[0m[[0minfo[0m] [0m[36mTotal number of tests run: 26[0m[0m
+[0m[[0minfo[0m] [0m[36mSuites: completed 3, aborted 0[0m[0m
+[0m[[0minfo[0m] [0m[36mTests: succeeded 26, failed 0, canceled 0, ignored 0, pending 0[0m[0m
+[0m[[0minfo[0m] [0m[32mAll tests passed.[0m[0m
+[0m[[0mdebug[0m] [0mPassed tests:[0m
+[0m[[0mdebug[0m] [0m	com.knol.core.impl.KnolxRepoImplTest[0m
+[0m[[0mdebug[0m] [0m	com.knol.core.impl.SessionRepoImplTest[0m
+[0m[[0mdebug[0m] [0m	com.knol.core.impl.KnolRepoImplTest[0m

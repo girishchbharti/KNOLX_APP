@@ -1,0 +1,8 @@
+[0m[[0minfo[0m] [0mReading scoverage instrumentation [/home/knoldus/Project/knolx/target/scala-2.11/scoverage-data/scoverage.coverage.xml][0m
+[0m[[0minfo[0m] [0mReading scoverage measurements...[0m
+[0m[[0minfo[0m] [0mGenerating scoverage reports...[0m
+[0m[[0minfo[0m] [0mWritten Cobertura report [/home/knoldus/Project/knolx/target/scala-2.11/coverage-report/cobertura.xml][0m
+[0m[[0minfo[0m] [0mWritten XML coverage report [/home/knoldus/Project/knolx/target/scala-2.11/scoverage-report/scoverage.xml][0m
+[0m[[0minfo[0m] [0mWritten HTML coverage report [/home/knoldus/Project/knolx/target/scala-2.11/scoverage-report/index.html][0m
+[0m[[0minfo[0m] [0mCoverage reports completed[0m
+[0m[[0minfo[0m] [0mAll done. Coverage was [92.98%][0m

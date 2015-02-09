@@ -1,0 +1,11 @@
+[0m[[0minfo[0m] [0m[32mSessionRepoImplTest:[0m[0m
+[0m[[0minfo[0m] [0m[32m- Create session[0m[0m
+[0m[[0minfo[0m] [0m[32m- Delete Session[0m[0m
+[0m[[0minfo[0m] [0m[32m- Update Session[0m[0m
+[0m[[0minfo[0m] [0m[32m- Show Session[0m[0m
+[0m[[0minfo[0m] [0m[32m- Show all sessions[0m[0m
+[0m[[0minfo[0m] [0m[32m- Create session with wrong input[0m[0m
+[0m[[0minfo[0m] [0m[32m- Delete Session with wrong session id[0m[0m
+[0m[[0minfo[0m] [0m[32m- Update Session with wrong input[0m[0m
+[0m[[0minfo[0m] [0m[32m- Show Session negative[0m[0m
+[0m[[0minfo[0m] [0m[32m- Show all sessions negative[0m[0m

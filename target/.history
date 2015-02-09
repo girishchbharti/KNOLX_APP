@@ -1,0 +1,24 @@
+compile
+run
+compile
+run
+sbt update
+sbt
+sbt test
+test
+update
+test
+clean
+test
+compile
+test
+run
+update
+test
+update
+test
+compile
+test
+clean
+scoverage
+sbt eclipse

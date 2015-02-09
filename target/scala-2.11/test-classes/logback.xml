@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%highlight([%level]) - [%date] - [%logger]  %msg%n</pattern>
+		</encoder>
+	</appender>
+	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<append>true</append>
+		<encoder>
+			<pattern>%highlight([%level]) - [%date] - [%logger]  %msg%n</pattern>
+		</encoder>
+	</appender>
+	<root level="debug">
+		<appender-ref ref="CONSOLE" />
+		<appender-ref ref="FILE" />
+	</root>
+</configuration> 

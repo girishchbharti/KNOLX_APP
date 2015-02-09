@@ -1,0 +1,5 @@
+#Successful Tests
+#Mon Feb 09 13:40:42 IST 2015
+com.knol.core.impl.SessionRepoImplTest=1423469439209
+com.knol.core.impl.KnolRepoImplTest=1423469432930
+com.knol.core.impl.KnolxRepoImplTest=1423469442695
